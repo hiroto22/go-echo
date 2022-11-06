@@ -1,8 +1,10 @@
 package main
 
 import (
-	"net/http"
+	"log"
 
+	"github.com/hiroto22/go-echo/handler"
+	"github.com/hiroto22/go-echo/store"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -15,14 +17,15 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	db, err := store.New()
+	if err != nil {
+		log.Fatalln("db connection error")
+	}
+
 	// ルートを設定
-	e.GET("/", hello) // ローカル環境の場合、http://localhost:8080/ にGETアクセスされるとhelloハンドラーを実行する
+	e.GET("/tasks", handler.GetTask(db))
+	e.POST("/tasks", handler.AddTask(db))
 
-	// サーバーをポート番号1323で起動
+	// サーバーをポート番号8080で起動
 	e.Logger.Fatal(e.Start(":8080"))
-}
-
-// ハンドラーを定義
-func hello(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
 }
